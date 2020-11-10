@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const customGenerationFunction = () => Math.round(Math.random() * 99).toString(10);
 const defaultConfig = {
     host: "::",
     port: 9000,
@@ -11,6 +12,7 @@ const defaultConfig = {
     allow_discovery: false,
     proxied: false,
     cleanup_out_msgs: 1000,
+    generateClientId: customGenerationFunction,
     ssl: {
         key: "",
         cert: ""

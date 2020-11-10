@@ -16,6 +16,8 @@ export interface IConfig {
   readonly generateClientId?: () => string;
 }
 
+const customGenerationFunction = () => Math.round(Math.random()*99).toString(10);
+
 const defaultConfig: IConfig = {
   host: "::",
   port: 9000,
@@ -27,6 +29,7 @@ const defaultConfig: IConfig = {
   allow_discovery: false,
   proxied: false,
   cleanup_out_msgs: 1000,
+  generateClientId: customGenerationFunction,
   ssl: {
     key: "",
     cert: ""
