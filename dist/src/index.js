@@ -17,8 +17,33 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const http_1 = __importDefault(require("http"));
 const https_1 = __importDefault(require("https"));
+const socket_io_1 = require("socket.io");
 const config_1 = __importDefault(require("./config"));
 const instance_1 = require("./instance");
+function RoomServer(server) {
+    const app = express_1.default();
+    const io = new socket_io_1.Server(server, {
+        cors: {
+            origin: ["http://localhost:3000", "https://web-player.vercel.app"],
+            methods: ["GET", "POST"],
+            allowedHeaders: ["origin", "x-requested-with", "content-type"],
+        }
+    });
+    io.on("connection", socket => {
+        socket.on("join-room", (roomId, userId) => {
+            console.log(`join-room: ${roomId} ${userId}`);
+            if (!roomId || !userId) {
+                return;
+            }
+            socket.join(roomId);
+            socket.to(roomId).broadcast.emit("user-connected", userId);
+            socket.on("disconnect", () => {
+                socket.to(roomId).broadcast.emit("user-disconnected", userId);
+            });
+        });
+    });
+    return app;
+}
 function ExpressPeerServer(server, options) {
     const app = express_1.default();
     const newOptions = Object.assign(Object.assign({}, config_1.default), options);
@@ -32,6 +57,8 @@ function ExpressPeerServer(server, options) {
         }
         instance_1.createInstance({ app, server, options: newOptions });
     });
+    const roomServer = RoomServer(server);
+    app.use(roomServer);
     return app;
 }
 exports.ExpressPeerServer = ExpressPeerServer;

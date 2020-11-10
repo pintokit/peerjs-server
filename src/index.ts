@@ -1,7 +1,7 @@
 import express from "express";
 import http from "http";
 import https from "https";
-import { Server } from "net";
+import { Server as SocketServer } from "socket.io"
 
 import defaultConfig, { IConfig } from "./config";
 import { createInstance } from "./instance";
@@ -10,7 +10,37 @@ type Optional<T> = {
   [P in keyof T]?: (T[P] | undefined);
 };
 
-function ExpressPeerServer(server: Server, options?: IConfig) {
+type HTTPServer = http.Server | https.Server
+
+function RoomServer(server: HTTPServer) {
+  const app = express()
+  const io = new SocketServer(server, {
+      cors: {
+            origin: ["http://localhost:3000", "https://web-player.vercel.app"],
+            methods: ["GET", "POST"],
+            allowedHeaders: ["origin", "x-requested-with", "content-type"],
+            // credentials: true
+        }
+    })
+
+  io.on("connection", socket => {
+    socket.on("join-room", (roomId: string, userId: string) => {
+      console.log(`join-room: ${roomId} ${userId}`)
+      if(!roomId || !userId) {
+        return
+      }
+      socket.join(roomId)
+      socket.to(roomId).broadcast.emit("user-connected", userId)
+
+      socket.on("disconnect", () => {
+        socket.to(roomId).broadcast.emit("user-disconnected", userId)
+      })
+    })
+  })
+  return app
+}
+
+function ExpressPeerServer(server: HTTPServer, options?: IConfig) {
   const app = express();
 
   const newOptions: IConfig = {
@@ -31,10 +61,13 @@ function ExpressPeerServer(server: Server, options?: IConfig) {
     createInstance({ app, server, options: newOptions });
   });
 
+  const roomServer = RoomServer(server)
+  app.use(roomServer)
+
   return app;
 }
 
-function PeerServer(options: Optional<IConfig> = {}, callback?: (server: Server) => void) {
+function PeerServer(options: Optional<IConfig> = {}, callback?: (server: HTTPServer) => void) {
   const app = express();
 
   let newOptions: IConfig = {
@@ -45,7 +78,7 @@ function PeerServer(options: Optional<IConfig> = {}, callback?: (server: Server)
   const port = newOptions.port;
   const host = newOptions.host;
 
-  let server: Server;
+  let server: HTTPServer;
 
   const { ssl, ...restOptions } = newOptions;
 
