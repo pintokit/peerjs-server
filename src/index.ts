@@ -57,6 +57,12 @@ function PeerServer(options: Optional<IConfig> = {}, callback?: (server: Server)
     server = http.createServer(app);
   }
 
+  app.use(function(_, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+  });
+
   const peerjs = ExpressPeerServer(server, newOptions);
   app.use(peerjs);
 

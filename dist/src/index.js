@@ -49,6 +49,11 @@ function PeerServer(options = {}, callback) {
     else {
         server = http_1.default.createServer(app);
     }
+    app.use(function (_, res, next) {
+        res.header("Access-Control-Allow-Origin", "*");
+        res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+        next();
+    });
     const peerjs = ExpressPeerServer(server, newOptions);
     app.use(peerjs);
     server.listen(port, host, () => callback === null || callback === void 0 ? void 0 : callback(server));
