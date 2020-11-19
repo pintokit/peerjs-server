@@ -26,7 +26,7 @@ function RoomServer(server) {
         cors: {
             origin: ["http://localhost:3000", "https://web-player.vercel.app", "https://web-player-git-modularize-usepeerstate.litlmoz.vercel.app"],
             methods: ["GET", "POST"],
-            allowedHeaders: ["origin", "x-requested-with", "content-type"],
+            allowedHeaders: ["origin", "x-requested-with", "content-type"]
         }
     });
     io.on("connection", socket => {
