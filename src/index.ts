@@ -16,7 +16,7 @@ function RoomServer(server: HTTPServer) {
   const app = express()
   const io = new SocketServer(server, {
       cors: {
-            origin: ["http://localhost:4000", "https://web-player.vercel.app", "https://pintopinto.org"],
+            origin: ["http://localhost:4000", "https://web-player.vercel.app", "https://www.pintopinto.org"],
             methods: ["GET", "POST"],
             allowedHeaders: ["origin", "x-requested-with", "content-type"]
         }
